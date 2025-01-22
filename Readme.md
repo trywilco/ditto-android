@@ -29,7 +29,7 @@ This sample application uses the [sample_guides](https://www.mongodb.com/docs/at
 
 ## Setup Collection Settings with the MongoDB Shell
 
-Ditto requires the movies collection to have change stream pre and post images enabled.  The following commands update the collection in order to enable [Change Stream Pre and Post Images](https://docs.ditto.live/cloud/mongodb-connector#create-mongodb-collections).  
+Ditto requires the planets collection to have change stream pre and post images enabled.  The following commands update the collection in order to enable [Change Stream Pre and Post Images](https://docs.ditto.live/cloud/mongodb-connector#create-mongodb-collections).  
 
 With the MongoDB Shell installed, run the following commands, replacing <username> with a username that has admin rights to the cluster:
 
@@ -53,8 +53,8 @@ db.runCommand({
 Currently, the Ditto MongoDB Connector will only work with documents that have been updated since the connector was created.  This means the workflow needs to be:
 
 1. Create the Ditto MongoDB Connector in the Ditto Portal 
-2. Use MongoDb Shell to update the movies collection with the planetId field
-3. Validate in the Ditto Portal that the documents have been updated with the planetId field
+2. Use MongoDb Shell to update the planets collection with the `planetId`  and soft delete field `isArchived`
+3. Validate in the Ditto Portal that the documents have been synced into Ditto with the `planetId` field
 
 
 ## Setup the Ditto MongoDB Connector in the Ditto Portal
