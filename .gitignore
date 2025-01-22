@@ -49,9 +49,6 @@ SwiftUI/fastlane/test_output
 # Code Injection
 SwiftUI/iOSInjectionProject/
 
-# Environment variables
-SwiftUI/Guides/dittoConfig.plist
-
 # Build products
 SwiftUI/build/
 SwiftUI/DerivedData/
