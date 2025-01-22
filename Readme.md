@@ -48,6 +48,8 @@ db.runCommand({
 })
 ```
 
+Keep the MongoDB shell open as we will need it in future steps.
+
 # Setup the Ditto MongoDB Connector
 
 Currently, the Ditto MongoDB Connector will only work with documents that have been updated since the connector was created.  This means the workflow needs to be:
@@ -63,7 +65,7 @@ Currently, the Ditto MongoDB Connector will only work with documents that have b
 
 ## Updating the Planet with `planetId` and `isArchived` field
 
-Next, run the following command to add a unique planetId field to all documents in the planets collection:
+Go back to the MongoDb Shell.  Run the following command to add a unique planetId field to all documents in the planets collection and setting the soft delete field `isArchived` to false.  This should update all the documents in the collection, which should trigger the Ditto MongoDB Connector to sync the documents to Ditto:
 
 ```sh
 db.planets.updateMany(
@@ -125,7 +127,7 @@ It should show a document with a planetId field, for example:
 
 ## Validate the documents have been updated with the planetId field
 
-To validate that the documents are syncing
+To validate that the documents are syncing in Ditto.
 
 - Log into the [Ditto Portal](https://portal.ditto.live/).  
 - Select your app.
