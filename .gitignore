@@ -1,0 +1,68 @@
+# macOS System Files
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.Spotlight-V100
+.Trashes
+
+# Xcode
+## User settings
+SwiftUI/xcuserdata/
+SwiftUI/*.xcodeproj/xcuserdata/
+SwiftUI/*.xcworkspace/xcuserdata/
+
+## Obj-C/Swift specific
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+## Playgrounds
+SwiftUI/timeline.xctimeline
+SwiftUI/playground.xcworkspace
+
+# Swift Package Manager
+SwiftUI/.build/
+SwiftUI/Packages/
+SwiftUI/*.xcodeproj
+SwiftUI/*.xcworkspace
+SwiftUI/Package.pins
+SwiftUI/Package.resolved
+SwiftUI/.swiftpm
+
+# CocoaPods
+SwiftUI/Pods/
+SwiftUI/*.xcconfig
+SwiftUI/Podfile.lock
+
+# Carthage
+SwiftUI/Carthage/Build/
+
+# fastlane
+SwiftUI/fastlane/report.xml
+SwiftUI/fastlane/Preview.html
+SwiftUI/fastlane/screenshots/**/*.png
+SwiftUI/fastlane/test_output
+
+# Code Injection
+SwiftUI/iOSInjectionProject/
+
+# Environment variables
+SwiftUI/Guides/dittoConfig.plist
+
+# Build products
+SwiftUI/build/
+SwiftUI/DerivedData/
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+*.moved-aside
+*.xccheckout
+*.xcscmblueprint
