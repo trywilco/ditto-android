@@ -27,6 +27,8 @@ This is a sample application that demonstrates how to use the MongoDB Connector 
 
 This sample application uses the [sample_guides](https://www.mongodb.com/docs/atlas/sample-data/sample-guides/) database from the MongoDB Atlas cluster and the planets collection.  Use the [MongoDB Atlas documentation](https://www.mongodb.com/docs/guides/atlas/sample-data/) to load the sample_guides data into your cluster before moving forward.  More information on the sample_guides data can be found [here](https://www.mongodb.com/docs/atlas/sample-data/#std-label-load-sample-data).
 
+This dataset was chosen for its small size, which eliminates the need to load large amounts of data into MongoDB Atlas and the Ditto Portal. This makes it an efficient way to test the Ditto MongoDB Connector.
+
 ## Setup Collection Settings with the MongoDB Shell
 
 Ditto requires the planets collection to have change stream pre and post images enabled.  The following commands update the collection in order to enable [Change Stream Pre and Post Images](https://docs.ditto.live/cloud/mongodb-connector#create-mongodb-collections).  
