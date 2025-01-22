@@ -1,10 +1,3 @@
-//
-//  DittoConfig.swift
-//  Guides
-//
-//  Created by Aaron LaBeau on 1/21/25.
-//
-
 import Foundation
 
 /// Store the app details to use when instantiating the app

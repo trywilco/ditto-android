@@ -1,10 +1,3 @@
-//
-//  DittoService.swift
-//  Guides
-//
-//  Created by Aaron LaBeau on 1/21/25.
-//
-
 import Combine
 import DittoSwift
 import Foundation

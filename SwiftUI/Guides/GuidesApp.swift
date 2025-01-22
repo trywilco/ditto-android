@@ -1,10 +1,3 @@
-//
-//  GuidesApp.swift
-//  Guides
-//
-//  Created by Aaron LaBeau on 1/21/25.
-//
-
 import SwiftUI
 
 @main
