@@ -187,7 +187,7 @@ To validate that the documents are syncing in Ditto.
 
 Update the `dittoConfig.plist` file with the proper values for `appId` and `authToken`.  You can find these values in the Ditto Portal `Connect` tab listed as the App ID and Online Playground Authentication Token.
 
-The endpointUrl in the config file is currently not used in the SwiftUI app.
+The endpointUrl in the config file is currently used to connect to the beta environment of Big Peer that is used for the Ditto MongoDB Connector.
 
 ## Run the SwiftUI App
 
