@@ -1,6 +1,6 @@
 # Ditto - Sample MongoDB Connector `Solar System Guides` App
 
-This is a sample application that demonstrates how to use the MongoDB Connector for Ditto with the `guides` sample data that comes with MongoDb Atlas. 
+This is a sample application that demonstrates how to use the MongoDB Connector for Ditto with the **`guides`** sample data that comes with MongoDb Atlas. 
 
 # Prerequisites
 
@@ -18,10 +18,50 @@ This is a sample application that demonstrates how to use the MongoDB Connector 
 # Setup in MongoDB Atlas
 
 ## Setup Atlas User from within MongoDB Atlas
-**TODO**
+
+For this setup, we will need to create two different users.  One for setting up the Cluster and one for the Ditto MongoDB Connector.
+
+### Create a User for managing the Cluster
+
+Open MongoDb Atlas and make sure you are on the Cluster Overview page.
+
+1. Click on the Database Access link under the Security section from the navigation menu on the left.
+2. Under the Database Users tab, click on the `+ ADD NEW DATABASE USER` button.
+3. Make sure Authentication Method is set to `Password`. 
+4. Under the first field, add in the username for the user.  In the examples we will use the username `atlasAdmin`.
+5. Under the Password Authentication set a password for the user. 
+6. Under Database User Privileges, click the `Add Built In Role` button and select the `Atlas admin` role.
+7. Click the `Add User` button.
+
+### Create a User for the Ditto MongoDB Connector
+
+More information about why this user is needed can be found in the [Ditto documentation](https://docs.ditto.live/cloud/mongodb-connector#create-a-mongodb-database-user).
+
+1. Under the `Database Users` tab, click on the `+ ADD NEW DATABASE USER` button.
+2. Make sure Authentication Method is set to `Password`. 
+3. Under the first field, add in the username for the user.  In the examples we will use the username `connector`.
+4. Under the Password Authentication set a password for the user. 
+5. Under `Database User Privileges`, click the `Add Built In Role` button and select the `Read and write to any database` role.
+6. Click the `Add User` button.
 
 ## Setup Atlas Networking from within MongoDB Atlas
-**TODO**
+
+For this setup, we will need to add the IP Addresses for Ditto Big Peer to the list of allowed IP Addresses to communicate with the MongoDB Atlas cluster.  More information can be found in the [Ditto documentation](https://docs.ditto.live/cloud/mongodb-connector#add-ditto-ips-to-mongodb-allowlist).
+
+### Add the IP Addresses for Ditto Big Peer to the list of allowed IP Addresses
+
+Open MongoDb Atlas and make sure you are on the `Cluster Overview` page.
+
+1. Click on the `Network Access` link under the `Security` section from the navigation menu on the left.  It should open to the `IP Access List` page.
+2. Click on the `+ ADD IP ADDRESS` button.
+3. From the Add IP Access List Entry window:
+  a. Add the following IP to the Access List Entry, Enter:  **35.162.177.41/32**
+  b. For Comments add Enter:  **Ditto-35.162.177.41** 
+4. Click the `Confirm` button.
+
+Repeat this process for these IP Addresses:
+  - **44.231.220.176/32**
+  - **18.246.126.150/32**
 
 ## Load the Sample Data
 
@@ -63,7 +103,9 @@ Currently, the Ditto MongoDB Connector will only work with documents that have b
 
 ## Setup the Ditto MongoDB Connector in the Ditto Portal
 
-**TODO**
+The [Ditto documentation](https://docs.ditto.live/cloud/mongodb-connector#configuring-the-connector) has information about how to setup the Ditto MongoDB Connector in the Ditto Portal. 
+
+The Step-By-Step Guide can be found [here](https://docs.ditto.live/cloud/mongodb-connector#step-by-step-guide)
 
 ## Updating the Planet with `planetId` and `isArchived` field
 
@@ -88,7 +130,8 @@ This command will:
 2. Use the document's existing `_id` field (which is already a unique ObjectId)
 3. Convert the ObjectId to a string
 4. Add it as the planetId field
-5. Add a isArchived field and set it to true for soft delete purposes with subscription 
+5. Add a `isArchived` field and set it to true for [soft delete](https://docs.ditto.live/crud/delete#Zb1T7) purposes with subscription 
+
 
 You can verify the update by running:
 ```sh
@@ -148,5 +191,8 @@ The endpointUrl in the config file is currently not used in the SwiftUI app.
 
 ## Run the SwiftUI App
 
-Open the Guides.xcodeproj file in XCode that can be found in the Run the SwiftUI folder. 
+Open the `Guides.xcodeproj` file in XCode that can be found in the Run the SwiftUI folder. 
 
+# Known Limitations
+
+An updated list of known limitations with the Ditto MongoDB Connector can be found [here](https://docs.ditto.live/cloud/mongodb-connector#current-limitations).
