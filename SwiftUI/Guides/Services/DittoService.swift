@@ -33,7 +33,7 @@ import SwiftUI
 
             //cache state for future use
             self.dittoApp = dittoApp
-            /*
+            
             #if os(tvOS)
                 let directory: FileManager.SearchPathDirectory =
                     .cachesDirectory
@@ -60,22 +60,30 @@ import SwiftUI
             let webSocketUrl =
                 "wss://\(dittoApp.appConfig.appId).cloud-dev.ditto.live"
 
-             let identity = DittoIdentity.onlinePlayground(
-             appID: dittoApp.appConfig.appId,
-             token: dittoApp.appConfig.authToken
-             )
-
-            //used for dev environment, remove when done testing
+            //
+            //TODO:
+            // used for dev environment, remove when done testing
+            //
             let identity = DittoIdentity.onlinePlayground(
                 appID: dittoApp.appConfig.appId,
                 token: dittoApp.appConfig.authToken,
                 enableDittoCloudSync: false,
                 customAuthURL: customAuthUrl
             )
+            
+            //production code, uncommet once using production environment
+            
+            /*
+             let identity = DittoIdentity.onlinePlayground(
+             appID: dittoApp.appConfig.appId,
+             token: dittoApp.appConfig.authToken
+             )
+             */
+            
             ditto = Ditto(
                 identity: identity, persistenceDirectory: persistenceDirURL)
 
-            //used for dev environment, remove when done testing
+            //TODO Remove once done using Dev environment
             ditto?.updateTransportConfig(block: { config in
                 config.connect.webSocketURLs.insert(webSocketUrl)
             })
@@ -83,7 +91,8 @@ import SwiftUI
             try setupSubscription()
             try await self.loadData()
             try registerObservers()
-            */
+            
+            //TODO remove loading mock data once calling ditto code is fixed
             try await loadMockData()
         }
     }
@@ -290,6 +299,22 @@ extension DittoService {
                     "orderFromSun": planet.orderFromSun,
                     "planetId": planet.planetId,
                     "temperature": planet.surfaceTemperatureC
+                ]
+            )
+        }
+    }
+    
+    func archivePlanet(_ planet: Planet) async throws {
+        if let dittoInstance = ditto {
+            try await dittoInstance.store.execute(
+                query: """
+                    UPDATE planets
+                    SET isArchived = :isArchived,
+                    WHERE planetId = :planetId
+                """,
+                arguments: [
+                    "isArchived": true,
+                    "planetId": planet.planetId,
                 ]
             )
         }
