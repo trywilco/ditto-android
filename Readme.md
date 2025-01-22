@@ -73,11 +73,19 @@ This dataset was chosen for its small size, which eliminates the need to load la
 
 Ditto requires the planets collection to have change stream pre and post images enabled.  The following commands update the collection in order to enable [Change Stream Pre and Post Images](https://docs.ditto.live/cloud/mongodb-connector#create-mongodb-collections).  
 
-With the MongoDB Shell installed, run the following commands, replacing the srv:// with the proper connection string for your cluster and <username> with a username that has admin rights to the cluster:
+### Getting the MongoDb Connection String
+
+From Atlas, click on the Clusters link under the Database section from the menu on the left.  Next, click on the Connect button under your cluster listing.
+
+From the Connect window, select `Shell` from the list.  This should give you the connection string for your cluster.
+
+### Running the Commands in the MongoDB Shell
+
+With the MongoDB Shell installed, run the following commands, replacing the srv:// with the proper connection string for your cluster and `atlasAdmin` with the username you created with admin rights to the cluster:
 
 ```sh
 mongosh "mongodb+srv://freecluster.abcd1.mongodb.net/sample_guides" 
---apiVersion 1 --username <username> 
+--apiVersion 1 --username atlasAdmin 
 ```
 
 Once connected, run the following command to enable change stream pre and post images:
