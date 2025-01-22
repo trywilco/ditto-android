@@ -31,7 +31,7 @@ This sample application uses the [sample_guides](https://www.mongodb.com/docs/at
 
 Ditto requires the planets collection to have change stream pre and post images enabled.  The following commands update the collection in order to enable [Change Stream Pre and Post Images](https://docs.ditto.live/cloud/mongodb-connector#create-mongodb-collections).  
 
-With the MongoDB Shell installed, run the following commands, replacing <username> with a username that has admin rights to the cluster:
+With the MongoDB Shell installed, run the following commands, replacing the srv:// with the proper connection string for your cluster and <username> with a username that has admin rights to the cluster:
 
 ```sh
 mongosh "mongodb+srv://freecluster.abcd1.mongodb.net/sample_guides" 
@@ -125,4 +125,24 @@ It should show a document with a planetId field, for example:
 
 ## Validate the documents have been updated with the planetId field
 
-**TODO**
+To validate that the documents are syncing
+
+- Log into the [Ditto Portal](https://portal.ditto.live/).  
+- Select your app.
+- Click on the `Collections` tab
+  - You should see the planets collection with the count of documents that were synced from MongoDb Atlas.  The count should be 8 documents.  
+  - Click the `View` link for the planets collection to see the documents in the DQL Editor.
+
+
+# Setup the SwiftUI App
+
+## Setup the DittoConfig.plist file
+
+Update the `dittoConfig.plist` file with the proper values for `appId` and `authToken`.  You can find these values in the Ditto Portal `Connect` tab listed as the App ID and Online Playground Authentication Token.
+
+The endpointUrl in the config file is currently not used in the SwiftUI app.
+
+## Run the SwiftUI App
+
+Open the Guides.xcodeproj file in XCode that can be found in the Run the SwiftUI folder. 
+
