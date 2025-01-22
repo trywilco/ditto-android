@@ -2,55 +2,35 @@ import SwiftUI
 
 struct PlanetEditorView: View {
     @Binding var isPresented: Bool
-    @State private var name = ""
-    @State private var orderFromSun: Double = 1.0
-    @State private var hasRings = false
-    @State private var atmosphere = ""
-    @State private var maxTemp: Double?
-    @State private var meanTemp: Double = 0
-    @State private var minTemp: Double?
-    
-    // Add property to store existing planet for editing
-    let existingPlanet: Planet?
+    @State private var viewModel: ViewModel
     
     init(isPresented: Binding<Bool>, planet: Planet? = nil) {
         self._isPresented = isPresented
-        self.existingPlanet = planet
-        
-        // Initialize state with existing planet data if editing
-        if let planet = planet {
-            self._name = State(initialValue: planet.name)
-            self._orderFromSun = State(initialValue: planet.orderFromSun)
-            self._hasRings = State(initialValue: planet.hasRings)
-            self._atmosphere = State(initialValue: planet.mainAtmosphere.joined(separator: ", "))
-            self._maxTemp = State(initialValue: planet.surfaceTemperatureC.max)
-            self._meanTemp = State(initialValue: planet.surfaceTemperatureC.mean)
-            self._minTemp = State(initialValue: planet.surfaceTemperatureC.min)
-        }
+        self._viewModel = State(initialValue: ViewModel(planet: planet))
     }
     
     var body: some View {
         NavigationStack {
             Form {
                 Section("Basic Information") {
-                    TextField("Name", text: $name)
+                    TextField("Name", text: $viewModel.name)
                     
                     HStack {
                         Text("Order from Sun")
                         Spacer()
-                        TextField("Order", value: $orderFromSun, format: .number)
+                        TextField("Order", value: $viewModel.orderFromSun, format: .number)
                             .keyboardType(.decimalPad)
                             .multilineTextAlignment(.trailing)
                             .frame(width: 100)
                     }
                     
-                    Toggle("Has Rings", isOn: $hasRings)
+                    Toggle("Has Rings", isOn: $viewModel.hasRings)
                 }
                 
                 Section("Atmosphere") {
                     TextField(
                         "Enter atmospheres (comma separated)",
-                        text: $atmosphere
+                        text: $viewModel.atmosphere
                     )
                     .autocapitalization(.none)
                 }
@@ -59,7 +39,7 @@ struct PlanetEditorView: View {
                     HStack {
                         Text("Maximum")
                         Spacer()
-                        TextField("Max", value: $maxTemp, format: .number)
+                        TextField("Max", value: $viewModel.maxTemp, format: .number)
                             .keyboardType(.numbersAndPunctuation)
                             .multilineTextAlignment(.trailing)
                             .frame(width: 100)
@@ -68,7 +48,7 @@ struct PlanetEditorView: View {
                     HStack {
                         Text("Mean")
                         Spacer()
-                        TextField("Mean", value: $meanTemp, format: .number)
+                        TextField("Mean", value: $viewModel.meanTemp, format: .number)
                             .keyboardType(.numbersAndPunctuation)
                             .multilineTextAlignment(.trailing)
                             .frame(width: 100)
@@ -77,14 +57,14 @@ struct PlanetEditorView: View {
                     HStack {
                         Text("Minimum")
                         Spacer()
-                        TextField("Min", value: $minTemp, format: .number)
+                        TextField("Min", value: $viewModel.minTemp, format: .number)
                             .keyboardType(.numbersAndPunctuation)
                             .multilineTextAlignment(.trailing)
                             .frame(width: 100)
                     }
                 }
             }
-            .navigationTitle(existingPlanet == nil ? "Add Planet" : "Edit Planet")
+            .navigationTitle(viewModel.existingPlanet == nil ? "Add Planet" : "Edit Planet")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -95,22 +75,52 @@ struct PlanetEditorView: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
                         Task {
-                            await savePlanet()
+                            await viewModel.savePlanet()
                             isPresented = false
                         }
                     }
-                    .disabled(name.isEmpty)
+                    .disabled(viewModel.name.isEmpty)
                 }
             }
         }
     }
-    
-    private func savePlanetNew() async {
-        let atmosphereComponents = atmosphere.split(separator: ",")
-            .map { $0.trimmingCharacters(in: .whitespaces) }
-            .filter { !$0.isEmpty }
+}
+
+#Preview {
+    PlanetEditorView(isPresented: .constant(true))
+}
+
+extension PlanetEditorView {
+    @Observable
+    class ViewModel {
+        var name = ""
+        var orderFromSun: Double = 1.0
+        var hasRings = false
+        var atmosphere = ""
+        var maxTemp: Double?
+        var meanTemp: Double = 0
+        var minTemp: Double?
+        let existingPlanet: Planet?
         
-        do {
+        init(planet: Planet? = nil) {
+            self.existingPlanet = planet
+            
+            if let planet = planet {
+                self.name = planet.name
+                self.orderFromSun = planet.orderFromSun
+                self.hasRings = planet.hasRings
+                self.atmosphere = planet.mainAtmosphere.joined(separator: ", ")
+                self.maxTemp = planet.surfaceTemperatureC.max
+                self.meanTemp = planet.surfaceTemperatureC.mean
+                self.minTemp = planet.surfaceTemperatureC.min
+            }
+        }
+        
+        func savePlanet() async {
+            let atmosphereComponents = atmosphere.split(separator: ",")
+                .map { $0.trimmingCharacters(in: .whitespaces) }
+                .filter { !$0.isEmpty }
+            
             if let existingPlanet = existingPlanet {
                 // Update existing planet
                 let updatedPlanet = Planet(
@@ -128,7 +138,8 @@ struct PlanetEditorView: View {
                         min: minTemp
                     )
                 )
-                try await DittoService.shared.updatePlanet(updatedPlanet)
+                // TODO: Call DittoService update method
+                print("Updating planet: \(updatedPlanet)")
             } else {
                 // Create new planet
                 let newPlanet = Planet(
@@ -150,65 +161,9 @@ struct PlanetEditorView: View {
                         min: minTemp
                     )
                 )
-                try await DittoService.shared.addPlanet(newPlanet)
+                // TODO: Call DittoService add method
+                print("Saving new planet: \(newPlanet)")
             }
-        } catch {
-            print("Error saving planet: \(error)")
-            // TODO: Show error to user
-        }
-    }
-    
-    private func savePlanet() async {
-        let atmosphereComponents = atmosphere.split(separator: ",")
-            .map { $0.trimmingCharacters(in: .whitespaces) }
-            .filter { !$0.isEmpty }
-        
-        if let existingPlanet = existingPlanet {
-            // Update existing planet
-            let updatedPlanet = Planet(
-                _id: existingPlanet._id,
-                _mdb: existingPlanet._mdb,
-                hasRings: hasRings,
-                isArchived: false,
-                mainAtmosphere: atmosphereComponents,
-                name: name,
-                orderFromSun: orderFromSun,
-                planetId: existingPlanet.planetId,
-                surfaceTemperatureC: .init(
-                    max: maxTemp,
-                    mean: meanTemp,
-                    min: minTemp
-                )
-            )
-            // TODO: Call DittoService update method
-            print("Updating planet: \(updatedPlanet)")
-        } else {
-            // Create new planet
-            let newPlanet = Planet(
-                _id: UUID().uuidString,
-                _mdb: .init(
-                    _id: UUID().uuidString,
-                    ct: [Int(Date().timeIntervalSince1970), 1],
-                    tm: .init(_id: 7)
-                ),
-                hasRings: hasRings,
-                isArchived: false,
-                mainAtmosphere: atmosphereComponents,
-                name: name,
-                orderFromSun: orderFromSun,
-                planetId: UUID().uuidString,
-                surfaceTemperatureC: .init(
-                    max: maxTemp,
-                    mean: meanTemp,
-                    min: minTemp
-                )
-            )
-            // TODO: Call DittoService add method
-            print("Saving new planet: \(newPlanet)")
         }
     }
 }
-
-#Preview {
-    PlanetEditorView(isPresented: .constant(true))
-} 
