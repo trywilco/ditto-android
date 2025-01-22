@@ -17,7 +17,7 @@ import SwiftUI
 
     static var shared = DittoService()
 
-    func initializeStore(dittoApp: DittoApp) async throws n {
+    func initializeStore(dittoApp: DittoApp) async throws {
         if !isStoreInitialized {
 
             // setup logging
@@ -116,7 +116,7 @@ extension DittoService {
     }
 }
 
-// MARK: Register Observer
+// MARK: Register Observer - Live Query
 extension DittoService {
 
     // Live Query - used to update planets array
@@ -128,6 +128,7 @@ extension DittoService {
                     SELECT *
                     FROM planets
                     WHERE isArchived = :isArchived
+                    ORDER BY orderFromSun
                     """,
                 arguments: ["isArchived": false]
             ) { results in

@@ -3,8 +3,6 @@ import SwiftUI
 struct ContentView: View {
     @EnvironmentObject private var appState: DittoApp
     @State private var viewModel: ContentView.ViewModel = ViewModel()
-    @State private var showingAddPlanet = false
-    @State private var planetToEdit: Planet?
     
     var body: some View {
         NavigationStack {
@@ -23,8 +21,7 @@ struct ContentView: View {
                         PlanetRow(planet: planet)
                             .contentShape(Rectangle())
                             .onTapGesture {
-                                planetToEdit = planet
-                                showingAddPlanet = true
+                                viewModel.showPlanetEditor(planet)
                             }
                             .swipeActions(edge: .trailing) {
                                 Button(role: .cancel) {
@@ -40,15 +37,18 @@ struct ContentView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        planetToEdit = nil
-                        showingAddPlanet = true
+                        viewModel.showPlanetEditor(nil)
                     } label: {
                         Image(systemName: "plus")
                     }
                 }
             }
-            .sheet(isPresented: $showingAddPlanet) {
-                PlanetEditorView(isPresented: $showingAddPlanet, planet: planetToEdit)
+            .sheet(isPresented: $viewModel.isPresented) {
+                PlanetEditorView(
+                    isPresented: $viewModel.isPresented,
+                    planet: viewModel.planetToEdit
+                )
+                .environmentObject(appState)
             }
         }
         .task(id: ObjectIdentifier(appState)) {
@@ -99,12 +99,13 @@ struct PlanetRow: View {
 extension ContentView {
     @Observable
     class ViewModel {
+        //used for list loading
         var planets: [Planet] = []
         var isLoading = false
         
-        var sortedPlanets: [Planet] {
-            planets.sorted { $0.orderFromSun < $1.orderFromSun }
-        }
+        //used for editor
+        var isPresented = false
+        var planetToEdit: Planet?
         
         func loadPlanets(appState: DittoApp) async {
             isLoading = true
@@ -121,5 +122,10 @@ extension ContentView {
         func deletePlanet(planetId: String) {
             print("Delete planet with ID: \(planetId)")
         }
+        
+        func showPlanetEditor(_ planet: Planet?) {
+            planetToEdit = planet
+            isPresented = true
+        }
     }
-} 
+}
