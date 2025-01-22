@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 struct ContentView: View {
     @EnvironmentObject private var appState: DittoApp
@@ -25,7 +26,7 @@ struct ContentView: View {
                             }
                             .swipeActions(edge: .trailing) {
                                 Button(role: .cancel) {
-                                    viewModel.deletePlanet(planetId: planet.planetId)
+                                    viewModel.archivePlanet(planetId: planet.planetId, appState: appState)
                                 } label: {
                                     Label("Delete", systemImage: "trash")
                                 }
@@ -98,8 +99,10 @@ struct PlanetRow: View {
 
 extension ContentView {
     @Observable
+    @MainActor
     class ViewModel {
-        //used for list loading
+        @ObservationIgnored private var cancellables = Set<AnyCancellable>()
+        
         var planets: [Planet] = []
         var isLoading = false
         
@@ -107,20 +110,38 @@ extension ContentView {
         var isPresented = false
         var planetToEdit: Planet?
         
+        init() {
+            // Observe changes to DittoService's planets
+            Task { @MainActor in
+                DittoService.shared.$planets
+                    .receive(on: RunLoop.main)
+                    .sink { [weak self] updatedPlanets in
+                        self?.planets = updatedPlanets
+                    }
+                    .store(in: &cancellables)
+            }
+        }
+        
         func loadPlanets(appState: DittoApp) async {
             isLoading = true
             do {
                 try await DittoService.shared
                     .initializeStore(dittoApp: appState)
-                planets = await DittoService.shared.planets
+                planets = DittoService.shared.planets
             } catch {
                 appState.setError(error)
             }
             isLoading = false
         }
         
-        func deletePlanet(planetId: String) {
-            print("Delete planet with ID: \(planetId)")
+        func archivePlanet(planetId: String, appState: DittoApp) {
+            Task { @MainActor in
+                do {
+                    try await DittoService.shared.archivePlanet(planetId)
+                } catch {
+                    appState.setError(error)
+                }
+            }
         }
         
         func showPlanetEditor(_ planet: Planet?) {

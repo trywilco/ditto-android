@@ -1,6 +1,7 @@
 import Foundation
 
-struct Planet: Decodable {
+@Observable
+class Planet: Decodable {
     let _id: String
     let hasRings: Bool
     let isArchived: Bool
@@ -10,14 +11,25 @@ struct Planet: Decodable {
     let planetId: String
     let surfaceTemperatureC: Temperature
     
-    struct Temperature: Decodable {
-        let max: Double?
-        let mean: Double
-        let min: Double?
+    init (_id: String,
+          hasRings: Bool,
+          isArchived: Bool,
+          mainAtmosphere: [String],
+          name: String,
+          orderFromSun: Int,
+          planetId: String,
+          surfaceTemperatureC: Temperature) {
+        
+        self._id = _id
+        self.hasRings = hasRings
+        self.isArchived = isArchived
+        self.mainAtmosphere = mainAtmosphere
+        self.name = name
+        self.orderFromSun = orderFromSun
+        self.planetId = planetId
+        self.surfaceTemperatureC = surfaceTemperatureC
     }
-}
-
-extension Planet {
+    
     init(value: [String: Any?]) {
         _id = value["_id"] as! String
         hasRings = value["hasRings"] as! Bool
@@ -29,10 +41,28 @@ extension Planet {
         
         // Safely unwrap the temperature dictionary
         if let temp = value["surfaceTemperatureC"] as? [String: Any] {
-            // Now we can safely access the temperature values
-            let max = temp["max"] as? Double
-            let min = temp["min"] as? Double
-            let mean = temp["mean"] as? Double ?? 0.0  // Provide default value since mean is non-optional
+            // Handle NSNumber values for temperatures
+            let max: Double? = {
+                if let number = temp["max"] as? NSNumber {
+                    return number.doubleValue
+                }
+                return nil
+            }()
+            
+            let mean: Double = {
+                if let number = temp["mean"] as? NSNumber {
+                    return number.doubleValue
+                }
+                return 0.0 // Default value since mean is non-optional
+            }()
+            
+            let min: Double? = {
+                if let number = temp["min"] as? NSNumber {
+                    return number.doubleValue
+                }
+                return nil
+            }()
+            
             surfaceTemperatureC = Temperature(
                 max: max,
                 mean: mean,
@@ -48,3 +78,21 @@ extension Planet {
         }
     }
 }
+
+@Observable
+class Temperature: Decodable {
+    let max: Double?
+    let mean: Double
+    let min: Double?
+    
+    init(max: Double?, mean: Double, min: Double?){
+        self.max = max
+        self.mean = mean
+        self.min = min
+    }
+    
+    func toDictionary() -> [String: Any?]{
+        return ["max": max, "mean": mean, "min": min]
+    }
+}
+

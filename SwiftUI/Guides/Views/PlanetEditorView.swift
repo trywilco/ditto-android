@@ -140,14 +140,15 @@ extension PlanetEditorView {
                     )
                     try await DittoService.shared.updatePlanet(updatedPlanet)
                 } else {
+                    let id = UUID().uuidString
                     let newPlanet = Planet(
-                        _id: UUID().uuidString,
+                        _id: id,
                         hasRings: hasRings,
                         isArchived: false,
                         mainAtmosphere: atmosphereComponents,
                         name: name,
                         orderFromSun: orderFromSun,
-                        planetId: UUID().uuidString,
+                        planetId: id,
                         surfaceTemperatureC: .init(
                             max: maxTemp,
                             mean: meanTemp,

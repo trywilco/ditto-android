@@ -11,7 +11,8 @@ import SwiftUI
     var dittoApp: DittoApp?
     var subscription: DittoSyncSubscription?
     var planetObserver: DittoStoreObserver?
-    var planets: [Planet] = []
+    
+    @Published var planets: [Planet] = []
     
     private init() {}
 
@@ -115,10 +116,11 @@ extension DittoService {
                     ORDER BY orderFromSun
                     """,
                 arguments: ["isArchived": false]
-            ) { results in
-                //provide dictionary of items returned back into a map,
-                //then create each item by calling init and storing in array
-                self.planets = results.items.compactMap{ Planet(value: $0.value) }
+            ) { [weak self] results in
+                Task { @MainActor in
+                    // Create new Planet instances and update the published property
+                    self?.planets = results.items.compactMap{ Planet(value: $0.value) }
+                }
             }
         }
     }
@@ -133,25 +135,18 @@ extension DittoService {
                 try await dittoInstance.store.execute(
                     query: """
                     INSERT INTO planets
-                    SET _id = :id,
-                        _mdb = :mdb,
-                        hasRings = :hasRings,
-                        isArchived = :isArchived,
-                        mainAtmosphere = :atmosphere,
-                        name = :name,
-                        orderFromSun = :orderFromSun,
-                        planetId = :planetId,
-                        surfaceTemperatureC = :temperature
+                    DOCUMENTS (:newPlanet)
                 """,
-                    arguments: [
-                        "id": planet._id,
+                    arguments: ["newPlanet": [
+                        "_id": planet._id,
                         "hasRings": planet.hasRings,
                         "isArchived": planet.isArchived,
-                        "atmosphere": planet.mainAtmosphere,
+                        "mainAtmosphere": planet.mainAtmosphere,
                         "name": planet.name,
                         "orderFromSun": planet.orderFromSun,
                         "planetId": planet.planetId,
-                        "temperature": planet.surfaceTemperatureC
+                        "surfaceTemperatureC": planet.surfaceTemperatureC.toDictionary()
+                        ]
                     ]
                 )
             }
@@ -181,7 +176,7 @@ extension DittoService {
                         "name": planet.name,
                         "orderFromSun": planet.orderFromSun,
                         "planetId": planet.planetId,
-                        "temperature": planet.surfaceTemperatureC
+                        "temperature": planet.surfaceTemperatureC.toDictionary(),
                     ]
                 )
             }
@@ -190,18 +185,18 @@ extension DittoService {
         }
     }
     
-    func archivePlanet(_ planet: Planet) async throws {
+    func archivePlanet(_ planetId: String) async throws {
         do {
             if let dittoInstance = ditto {
                 try await dittoInstance.store.execute(
                     query: """
                     UPDATE planets
-                    SET isArchived = :isArchived,
+                    SET isArchived = :isArchived
                     WHERE planetId = :planetId
                 """,
                     arguments: [
                         "isArchived": true,
-                        "planetId": planet.planetId,
+                        "planetId": planetId,
                     ]
                 )
             }
