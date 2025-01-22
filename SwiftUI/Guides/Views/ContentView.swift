@@ -19,7 +19,7 @@ struct ContentView: View {
                         description: Text("There are no planets to display")
                     )
                 } else {
-                    List(viewModel.sortedPlanets, id: \.planetId) { planet in
+                    List(viewModel.planets, id: \.planetId) { planet in
                         PlanetRow(planet: planet)
                             .contentShape(Rectangle())
                             .onTapGesture {

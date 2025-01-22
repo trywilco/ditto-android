@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct PlanetEditorView: View {
+    @EnvironmentObject private var appState: DittoApp
     @Binding var isPresented: Bool
     @State private var viewModel: ViewModel
     
@@ -75,7 +76,7 @@ struct PlanetEditorView: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
                         Task {
-                            await viewModel.savePlanet()
+                            await viewModel.savePlanet(appState: appState)
                             isPresented = false
                         }
                     }
@@ -94,7 +95,7 @@ extension PlanetEditorView {
     @Observable
     class ViewModel {
         var name = ""
-        var orderFromSun: Double = 1.0
+        var orderFromSun: Int = 1
         var hasRings = false
         var atmosphere = ""
         var maxTemp: Double?
@@ -116,53 +117,47 @@ extension PlanetEditorView {
             }
         }
         
-        func savePlanet() async {
-            let atmosphereComponents = atmosphere.split(separator: ",")
-                .map { $0.trimmingCharacters(in: .whitespaces) }
-                .filter { !$0.isEmpty }
-            
-            if let existingPlanet = existingPlanet {
-                // Update existing planet
-                let updatedPlanet = Planet(
-                    _id: existingPlanet._id,
-                    _mdb: existingPlanet._mdb,
-                    hasRings: hasRings,
-                    isArchived: false,
-                    mainAtmosphere: atmosphereComponents,
-                    name: name,
-                    orderFromSun: orderFromSun,
-                    planetId: existingPlanet.planetId,
-                    surfaceTemperatureC: .init(
-                        max: maxTemp,
-                        mean: meanTemp,
-                        min: minTemp
+        func savePlanet(appState: DittoApp) async {
+            do {
+                let atmosphereComponents = atmosphere.split(separator: ",")
+                    .map { $0.trimmingCharacters(in: .whitespaces) }
+                    .filter { !$0.isEmpty }
+                
+                if let existingPlanet = existingPlanet {
+                    let updatedPlanet = Planet(
+                        _id: existingPlanet._id,
+                        hasRings: hasRings,
+                        isArchived: false,
+                        mainAtmosphere: atmosphereComponents,
+                        name: name,
+                        orderFromSun: orderFromSun,
+                        planetId: existingPlanet.planetId,
+                        surfaceTemperatureC: .init(
+                            max: maxTemp,
+                            mean: meanTemp,
+                            min: minTemp
+                        )
                     )
-                )
-                // TODO: Call DittoService update method
-                print("Updating planet: \(updatedPlanet)")
-            } else {
-                // Create new planet
-                let newPlanet = Planet(
-                    _id: UUID().uuidString,
-                    _mdb: .init(
+                    try await DittoService.shared.updatePlanet(updatedPlanet)
+                } else {
+                    let newPlanet = Planet(
                         _id: UUID().uuidString,
-                        ct: [Int(Date().timeIntervalSince1970), 1],
-                        tm: .init(_id: 7)
-                    ),
-                    hasRings: hasRings,
-                    isArchived: false,
-                    mainAtmosphere: atmosphereComponents,
-                    name: name,
-                    orderFromSun: orderFromSun,
-                    planetId: UUID().uuidString,
-                    surfaceTemperatureC: .init(
-                        max: maxTemp,
-                        mean: meanTemp,
-                        min: minTemp
+                        hasRings: hasRings,
+                        isArchived: false,
+                        mainAtmosphere: atmosphereComponents,
+                        name: name,
+                        orderFromSun: orderFromSun,
+                        planetId: UUID().uuidString,
+                        surfaceTemperatureC: .init(
+                            max: maxTemp,
+                            mean: meanTemp,
+                            min: minTemp
+                        )
                     )
-                )
-                // TODO: Call DittoService add method
-                print("Saving new planet: \(newPlanet)")
+                    try await DittoService.shared.addPlanet(newPlanet)
+                }
+            } catch {
+                appState.setError(error)
             }
         }
     }

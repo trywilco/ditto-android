@@ -3,10 +3,10 @@
 <plist version="1.0">
 <dict>
 	<key>endpointUrl</key>
-    <string>https://brave-otter.ditto.dittolive.app</string>
+	<string>brave-otter.ditto.dittolive.app</string>
 	<key>appId</key>
-    <string>f1b7bb06-66ea-4c1c-b8ee-28bd6c3e16fd</string>
-    <key>authToken</key>
-    <string>0e3e6cbb-b639-4f5f-95ca-99ab6174a8a3</string>
+	<string></string>
+	<key>authToken</key>
+	<string></string>
 </dict>
 </plist>

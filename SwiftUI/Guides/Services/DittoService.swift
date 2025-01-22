@@ -17,7 +17,7 @@ import SwiftUI
 
     static var shared = DittoService()
 
-    func initializeStore(dittoApp: DittoApp) async throws {
+    func initializeStore(dittoApp: DittoApp) async throws n {
         if !isStoreInitialized {
 
             // setup logging
@@ -43,15 +43,15 @@ import SwiftUI
                 .appendingPathComponent("ditto-guides")
 
             //
+            //TODO:
             //used for dev environment only
-            //remove when done testing
             //
             let customAuthUrl = URL(
                 string:
-                    "https://\(dittoApp.appConfig.appId).cloud-dev.ditto.live"
+                    "https://\(dittoApp.appConfig.endpointUrl)"
             )
             let webSocketUrl =
-                "wss://\(dittoApp.appConfig.appId).cloud-dev.ditto.live"
+                "wss://\(dittoApp.appConfig.endpointUrl)"
 
             //
             //TODO:
@@ -64,7 +64,9 @@ import SwiftUI
                 customAuthURL: customAuthUrl
             )
             
+            //
             //production code, uncommet once using production environment
+            //
             
             /*
              let identity = DittoIdentity.onlinePlayground(
@@ -76,17 +78,15 @@ import SwiftUI
             ditto = Ditto(
                 identity: identity, persistenceDirectory: persistenceDirURL)
 
+            //
             //TODO Remove once done using Dev environment
+            //
             ditto?.updateTransportConfig(block: { config in
                 config.connect.webSocketURLs.insert(webSocketUrl)
             })
 
             try setupSubscription()
-            try await self.loadData()
             try registerObservers()
-            
-            //TODO remove loading mock data once calling ditto code is fixed
-            try await loadMockData()
         }
     }
 }
@@ -119,6 +119,8 @@ extension DittoService {
 // MARK: Register Observer
 extension DittoService {
 
+    // Live Query - used to update planets array
+    // anytime the data changes in Ditto
     func registerObservers() throws {
         if let dittoInstance = ditto {
             planetObserver = try dittoInstance.store.registerObserver(
@@ -129,112 +131,11 @@ extension DittoService {
                     """,
                 arguments: ["isArchived": false]
             ) { results in
-                results.items.forEach {
-                    print($0)
-                }
+                //provide dictionary of items returned back into a map,
+                //then create each item by calling init and storing in array
+                self.planets = results.items.compactMap{ Planet(value: $0.value) }
             }
         }
-    }
-
-}
-
-// MARK: Initial Dataload
-extension DittoService {
-
-    func loadData() async throws {
-        if let dittoInstance = ditto {
-            let results = try await dittoInstance.store.execute(
-                query: """
-                    SELECT *
-                    FROM planets
-                    WHERE isArchived = :isArchived
-                    """,
-                arguments: ["isArchived": false])
-
-            results.items.forEach {
-                print($0)
-            }
-        }
-    }
-
-    func loadMockData() async throws {
-        let jsonData = """
-            [
-            {
-                "_id": "621ff30d2a3e781873fcb65c",
-                "_mdb": {
-                    "_id": "621ff30d2a3e781873fcb65c",
-                    "ct": [1737496378, 184],
-                    "tm": {"_id": 7}
-                },
-                "hasRings": true,
-                "isArchived": false,
-                "mainAtmosphere": [],
-                "name": "Mercury",
-                "orderFromSun": 1,
-                "planetId": "621ff30d2a3e781873fcb65c",
-                "surfaceTemperatureC": {
-                    "max": 427,
-                    "mean": 67,
-                    "min": -173
-                }
-            },
-            {
-                "_id": "621ff30d2a3e781873fcb65d",
-                "_mdb": {
-                    "_id": "621ff30d2a3e781873fcb65d",
-                    "ct": [1737496378, 185],
-                    "tm": {"_id": 7}
-                },
-                "hasRings": true,
-                "isArchived": false,
-                "mainAtmosphere": [
-                    "H2",
-                    "He",
-                    "CH4"
-                ],
-                "name": "Uranus",
-                "orderFromSun": 7,
-                "planetId": "621ff30d2a3e781873fcb65d",
-                "surfaceTemperatureC": {
-                    "max": null,
-                    "mean": -197.2,
-                    "min": null
-                }
-            },
-            {
-                "_id": "621ff30d2a3e781873fcb65e",
-                "_mdb": {
-                    "_id": "621ff30d2a3e781873fcb65e",
-                    "ct": [1737496378, 186],
-                    "tm": {"_id": 7}
-                },
-                "hasRings": false,
-                "isArchived": false,
-                "mainAtmosphere": [
-                    "SO2",
-                    "O2",
-                    "SO"
-                ],
-                "name": "Io",
-                "orderFromSun": 5.2,
-                "planetId": "621ff30d2a3e781873fcb65e",
-                "surfaceTemperatureC": {
-                    "max": -130,
-                    "mean": -163,
-                    "min": -183
-                }
-            }
-            ]
-            """
-        
-        guard let data = jsonData.data(using: .utf8) else {
-            throw NSError(domain: "JSONError", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to convert string to data"])
-        }
-        
-        let decoder = JSONDecoder()
-        let results = try decoder.decode([Planet].self, from: data)
-        self.planets = results
     }
 
 }
@@ -242,9 +143,10 @@ extension DittoService {
 // MARK: Planet Operations
 extension DittoService {
     func addPlanet(_ planet: Planet) async throws {
-        if let dittoInstance = ditto {
-            try await dittoInstance.store.execute(
-                query: """
+        do {
+            if let dittoInstance = ditto {
+                try await dittoInstance.store.execute(
+                    query: """
                     INSERT INTO planets
                     SET _id = :id,
                         _mdb = :mdb,
@@ -256,25 +158,28 @@ extension DittoService {
                         planetId = :planetId,
                         surfaceTemperatureC = :temperature
                 """,
-                arguments: [
-                    "id": planet._id,
-                    "mdb": planet._mdb,
-                    "hasRings": planet.hasRings,
-                    "isArchived": planet.isArchived,
-                    "atmosphere": planet.mainAtmosphere,
-                    "name": planet.name,
-                    "orderFromSun": planet.orderFromSun,
-                    "planetId": planet.planetId,
-                    "temperature": planet.surfaceTemperatureC
-                ]
-            )
+                    arguments: [
+                        "id": planet._id,
+                        "hasRings": planet.hasRings,
+                        "isArchived": planet.isArchived,
+                        "atmosphere": planet.mainAtmosphere,
+                        "name": planet.name,
+                        "orderFromSun": planet.orderFromSun,
+                        "planetId": planet.planetId,
+                        "temperature": planet.surfaceTemperatureC
+                    ]
+                )
+            }
+        } catch {
+            self.dittoApp?.setError(error)
         }
     }
     
     func updatePlanet(_ planet: Planet) async throws {
-        if let dittoInstance = ditto {
-            try await dittoInstance.store.execute(
-                query: """
+        do {
+            if let dittoInstance = ditto {
+                try await dittoInstance.store.execute(
+                    query: """
                     UPDATE planets
                     SET hasRings = :hasRings,
                         isArchived = :isArchived,
@@ -284,32 +189,39 @@ extension DittoService {
                         surfaceTemperatureC = :temperature
                     WHERE planetId = :planetId
                 """,
-                arguments: [
-                    "hasRings": planet.hasRings,
-                    "isArchived": planet.isArchived,
-                    "atmosphere": planet.mainAtmosphere,
-                    "name": planet.name,
-                    "orderFromSun": planet.orderFromSun,
-                    "planetId": planet.planetId,
-                    "temperature": planet.surfaceTemperatureC
-                ]
-            )
+                    arguments: [
+                        "hasRings": planet.hasRings,
+                        "isArchived": planet.isArchived,
+                        "atmosphere": planet.mainAtmosphere,
+                        "name": planet.name,
+                        "orderFromSun": planet.orderFromSun,
+                        "planetId": planet.planetId,
+                        "temperature": planet.surfaceTemperatureC
+                    ]
+                )
+            }
+        } catch {
+            self.dittoApp?.setError(error)
         }
     }
     
     func archivePlanet(_ planet: Planet) async throws {
-        if let dittoInstance = ditto {
-            try await dittoInstance.store.execute(
-                query: """
+        do {
+            if let dittoInstance = ditto {
+                try await dittoInstance.store.execute(
+                    query: """
                     UPDATE planets
                     SET isArchived = :isArchived,
                     WHERE planetId = :planetId
                 """,
-                arguments: [
-                    "isArchived": true,
-                    "planetId": planet.planetId,
-                ]
-            )
+                    arguments: [
+                        "isArchived": true,
+                        "planetId": planet.planetId,
+                    ]
+                )
+            }
+        } catch {
+            self.dittoApp?.setError(error)
         }
     }
 }
