@@ -27,21 +27,6 @@ import SwiftUI
             //cache state for future use
             self.dittoApp = dittoApp
             
-            #if os(tvOS)
-                let directory: FileManager.SearchPathDirectory =
-                    .cachesDirectory
-            #else
-                let directory: FileManager.SearchPathDirectory =
-                    .documentDirectory
-            #endif
-
-            let persistenceDirURL = try? FileManager()
-                .url(
-                    for: directory, in: .userDomainMask, appropriateFor: nil,
-                    create: true
-                )
-                .appendingPathComponent("ditto-guides")
-
             //
             //TODO:
             //used for dev environment only
@@ -75,8 +60,7 @@ import SwiftUI
              )
              */
             
-            ditto = Ditto(
-                identity: identity, persistenceDirectory: persistenceDirURL)
+            ditto = Ditto(identity: identity)
 
             //
             //TODO Remove once done using Dev environment
