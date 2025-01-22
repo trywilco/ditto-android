@@ -26,11 +26,6 @@ SwiftUI/playground.xcworkspace
 # Swift Package Manager
 SwiftUI/.build/
 SwiftUI/Packages/
-SwiftUI/*.xcodeproj
-SwiftUI/*.xcworkspace
-SwiftUI/Package.pins
-SwiftUI/Package.resolved
-SwiftUI/.swiftpm
 
 # CocoaPods
 SwiftUI/Pods/

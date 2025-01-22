@@ -1,19 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<!--
-   dittoConfig.plist
-   Movies
-
-   Created by Aaron LaBeau on 1/21/25.
-   Copyright (c) 2025 ___ORGANIZATIONNAME___. All rights reserved.
--->
 <plist version="1.0">
 <dict>
 	<key>endpointUrl</key>
-    <string>https://xxx.ditto.dittolive.app/**appId**/</string>
+    <string>https://brave-otter.ditto.dittolive.app</string>
 	<key>appId</key>
-    <string></string>
+    <string>f1b7bb06-66ea-4c1c-b8ee-28bd6c3e16fd</string>
     <key>authToken</key>
-    <string></string>
+    <string>0e3e6cbb-b639-4f5f-95ca-99ab6174a8a3</string>
 </dict>
 </plist>
