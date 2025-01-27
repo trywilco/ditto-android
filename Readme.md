@@ -56,7 +56,7 @@ Open MongoDb Atlas and make sure you are on the `Cluster Overview` page.
 2. Click on the `+ ADD IP ADDRESS` button.
 3. From the Add IP Access List Entry window:
   - Add the following IP to the Access List Entry, enter:  **52.15.232.117/32**
-  - For Comments add, enter:  **Ditto-35.162.177.41** 
+  - For Comments add, enter:  **Ditto-52.15.232.117** 
 4. Click the `Confirm` button.
 
 Repeat this process for these IP Addresses:
