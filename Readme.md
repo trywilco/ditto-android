@@ -55,13 +55,13 @@ Open MongoDb Atlas and make sure you are on the `Cluster Overview` page.
 1. Click on the `Network Access` link under the `Security` section from the navigation menu on the left.  It should open to the `IP Access List` page.
 2. Click on the `+ ADD IP ADDRESS` button.
 3. From the Add IP Access List Entry window:
-  - Add the following IP to the Access List Entry, enter:  **35.162.177.41/32**
+  - Add the following IP to the Access List Entry, enter:  **52.15.232.117/32**
   - For Comments add, enter:  **Ditto-35.162.177.41** 
 4. Click the `Confirm` button.
 
 Repeat this process for these IP Addresses:
-  - **44.231.220.176/32**
-  - **18.246.126.150/32**
+  - **3.130.255.9/32**
+  - **3.147.233.88/32**
 
 ## Load the Sample Data
 
@@ -204,3 +204,6 @@ Open the `Guides.xcodeproj` file in XCode that can be found in the Run the Swift
 # Known Limitations
 
 An updated list of known limitations with the Ditto MongoDB Connector can be found [here](https://docs.ditto.live/cloud/mongodb-connector#current-limitations).
+
+# YouTube Video
+A YouTube video that walks you through the setup can be found [here](https://www.youtube.com/watch?v=BtssEpG4m38).
