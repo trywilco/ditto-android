@@ -7,6 +7,9 @@ Icon
 .Spotlight-V100
 .Trashes
 
+##VSCode
+.vscode/
+
 # Xcode
 ## User settings
 SwiftUI/xcuserdata/
@@ -58,3 +61,24 @@ SwiftUI/DerivedData/
 *.moved-aside
 *.xccheckout
 *.xcscmblueprint
+
+## Android
+Android/.idea
+Android/shelf/
+Android/workspace.xml
+Android/.kotlin
+Android/.gradle
+Android/local.properties
+Android/*.iml
+Android/build/
+Android/app/build/
+Android/captures/
+Android/.externalNativeBuild
+Android/.cxx
+Android/app/release/
+Android/app/debug/
+Android/app/*.aab
+Android/app/*.apk
+Android/*.jks
+Android/*.keystore
+Android/app/google-services.json
