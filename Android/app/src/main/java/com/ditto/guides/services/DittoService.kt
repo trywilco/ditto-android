@@ -18,8 +18,55 @@ import live.ditto.android.DefaultAndroidDittoDependencies
 interface DittoService {
     val ditto: Ditto?
     fun getPlanets(): Flow<List<Planet>>
+
+    /**
+     * Updates an existing planet in the Ditto store.
+     *
+     * This method:
+     * - Updates all mutable fields of the planet
+     * - Maintains the planet's ID and references
+     * - Triggers a sync with other devices
+     *
+     * @param planet The updated Planet object containing all changes
+     * @throws Exception if the update operation fails
+     */
     suspend fun updatePlanet(planet: Planet)
+
+    /**
+     * Adds a new planet to the Ditto store.
+     *
+     * This method:
+     * - Creates a new document in the planets collection
+     * - Assigns the provided ID and properties
+     * - Triggers a sync with other devices
+     *
+     * The planet object should have:
+     * - A unique ID
+     * - All required fields populated
+     * - isArchived set to false
+     *
+     * @param planet The new Planet object to be added
+     * @throws Exception if the insert operation fails
+     */
     suspend fun addPlanet(planet: Planet)
+
+    /**
+     * Archives a planet by setting its isArchived flag to true.
+     *
+     * This method:
+     * - Marks the planet as archived instead of deleting it
+     * - Removes it from active queries and views
+     * - Maintains the data for historical purposes
+     * - Triggers a sync with other devices
+     *
+     * Archived planets:
+     * - Are excluded from the main planet list
+     * - Can be restored if needed
+     * - Maintain their original properties
+     *
+     * @param planetId The unique identifier of the planet to archive
+     * @throws Exception if the archive operation fails
+     */
     suspend fun archivePlanet(planetId: String)
 }
 
@@ -142,6 +189,14 @@ class DittoServiceImp(
         }
     }
 
+    /**
+     * Updates an existing planet's properties in the Ditto store.
+     * 
+     * Implementation details:
+     * - Uses DQL to update the document
+     *
+     * @param planet The Planet object containing updated values
+     */
     override suspend fun updatePlanet(planet: Planet) {
         try {
             ditto?.store?.execute(
@@ -174,6 +229,14 @@ class DittoServiceImp(
         }
     }
 
+    /**
+     * Creates a new planet document in the Ditto store.
+     * 
+     * Implementation details:
+     * - Inserts a complete document with all required fields using DQL
+     *
+     * @param planet The new Planet object to insert
+     */
     override suspend fun addPlanet(planet: Planet) {
         try {
             ditto?.store?.execute(
@@ -202,6 +265,14 @@ class DittoServiceImp(
         }
     }
 
+    /**
+     * Marks a planet as archived in the Ditto store.
+     * 
+     * Implementation details:
+     * - Uses a simple DQL UPDATE query to set isArchived flag
+     *
+     * @param planetId The unique identifier of the planet to archive
+     */
     override suspend fun archivePlanet(planetId: String) {
         try {
             ditto?.store?.execute(
@@ -216,7 +287,7 @@ class DittoServiceImp(
                 )
             )
         } catch (e: Exception) {
-            errorService.showError("Failed to add planet: ${e.message}")
+            errorService.showError("Failed to archive planet: ${e.message}")
         }
     }
 }
