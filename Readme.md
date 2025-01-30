@@ -211,7 +211,7 @@ Open the `Guides.xcodeproj` file in XCode that can be found in the Run the Swift
 
 Update the `dittoConfig.xml` file found in the Android/app/src/main/res/values/ folder with the proper values for `appId` and `authToken`.  You can find these values in the Ditto Portal `Connect` tab listed as the App ID and Online Playground Authentication Token.
 
-The endpointUrl in the config file is currently used to connect to the preview environment of Big Peer that is used for the Ditto MongoDB Connector.
+The `endpointUrl` in the config file is currently used to connect to the preview environment of Big Peer that is used for the Ditto MongoDB Connector.
 
 ## Run the Android Jetpack Compose App
 
