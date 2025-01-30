@@ -1,7 +1,6 @@
 package com.ditto.guides.services
 
 import android.content.Context
-import android.util.Log
 import com.ditto.guides.models.AppConfig
 import com.ditto.guides.models.Planet
 import kotlinx.coroutines.channels.awaitClose
@@ -16,15 +15,21 @@ import live.ditto.DittoStoreObserver
 import live.ditto.DittoSyncSubscription
 import live.ditto.android.DefaultAndroidDittoDependencies
 
-interface DittoService{
+interface DittoService {
+    val ditto: Ditto?
     fun getPlanets(): Flow<List<Planet>>
+    suspend fun updatePlanet(planet: Planet)
+    suspend fun addPlanet(planet: Planet)
+    suspend fun archivePlanet(planetId: String)
 }
 
-class DittoServiceImp (
-    private val appConfig: AppConfig,
-    private val context: Context): DittoService {
+class DittoServiceImp(
+    appConfig: AppConfig,
+    context: Context,
+    private val errorService: ErrorService
+) : DittoService {
 
-    private var ditto:Ditto? = null
+    override var ditto: Ditto? = null
     private var subscription: DittoSyncSubscription? = null
     private var planetObserver: DittoStoreObserver? = null
 
@@ -48,7 +53,8 @@ class DittoServiceImp (
                 appConfig.appId,
                 appConfig.authToken,
                 false,
-                customAuthUrl)
+                customAuthUrl
+            )
             this.ditto = Ditto(androidDependencies, identity)
             ditto?.updateTransportConfig { config ->
                 config.connect.websocketUrls.add(webSocketUrl)
@@ -56,8 +62,8 @@ class DittoServiceImp (
 
             setupSubscriptions()
 
-        } catch(e: DittoError){
-         Log.e("Ditto error", e.message!!)
+        } catch (e: DittoError) {
+            errorService.showError("Failed to initialize Ditto: ${e.message}")
         }
     }
 
@@ -75,20 +81,25 @@ class DittoServiceImp (
      * This subscription is responsible for the actual data synchronization.
      */
     private fun setupSubscriptions() {
-        this.ditto?.let {
-            this.subscription = it.sync.registerSubscription(
-                """
+        try {
+            this.ditto?.let {
+                this.subscription = it.sync.registerSubscription(
+                    """
                     SELECT *
                     FROM planets
                     WHERE isArchived = :isArchived
-                    """, mapOf("isArchived" to false))
-            it.startSync()
+                    """, mapOf("isArchived" to false)
+                )
+                it.startSync()
+            }
+        } catch (e: Exception) {
+            errorService.showError("Failed to setup ditto subscription: ${e.message}")
         }
     }
 
     /**
      * Creates a Flow that observes and emits changes to the planets collection in Ditto.
-     * 
+     *
      * This method:
      * - Sets up a live query observer for the planets collection
      * - Emits a new list of planets whenever the data changes
@@ -104,24 +115,108 @@ class DittoServiceImp (
      *
      */
     override fun getPlanets(): Flow<List<Planet>> = callbackFlow {
-        ditto?.let { ditto ->
-            planetObserver = ditto.store.registerObserver("""
+        try {
+            ditto?.let {
+                planetObserver = it.store.registerObserver(
+                    """
                 SELECT *
                 FROM planets
                 WHERE isArchived = :isArchived
                 ORDER BY orderFromSun
-            """, mapOf("isArchived" to false)) { results ->
-                val planets = results.items.map { item ->
-                    Planet.fromMap(item.value)
+            """, mapOf("isArchived" to false)
+                ) { results ->
+                    val planets = results.items.map { item ->
+                        Planet.fromMap(item.value)
+                    }
+                    trySend(planets)
                 }
-                trySend(planets)
             }
-        }
 
-        // Clean up the observer when the flow is cancelled
-        awaitClose {
-            planetObserver?.close()
-            planetObserver = null
+            // Clean up the observer when the flow is cancelled
+            awaitClose {
+                planetObserver?.close()
+                planetObserver = null
+            }
+        } catch (e: Exception) {
+            errorService.showError("Failed to setup observer for getting planets: ${e.message}")
+        }
+    }
+
+    override suspend fun updatePlanet(planet: Planet) {
+        try {
+            ditto?.store?.execute(
+                """
+                UPDATE planets
+                SET hasRings = :hasRings,
+                    isArchived = :isArchived,
+                    mainAtmosphere = :atmosphere,
+                    name = :name,
+                    orderFromSun = :orderFromSun,
+                    surfaceTemperatureC = :temperature
+                WHERE planetId = :planetId
+                """,
+                mapOf(
+                    "hasRings" to planet.hasRings,
+                    "isArchived" to planet.isArchived,
+                    "atmosphere" to planet.mainAtmosphere,
+                    "name" to planet.name,
+                    "orderFromSun" to planet.orderFromSun,
+                    "planetId" to planet.planetId,
+                    "temperature" to mapOf(
+                        "max" to planet.surfaceTemperatureC.max,
+                        "mean" to planet.surfaceTemperatureC.mean,
+                        "min" to planet.surfaceTemperatureC.min
+                    )
+                )
+            )
+        } catch (e: Exception) {
+            errorService.showError("Failed to update planet: ${e.message}")
+        }
+    }
+
+    override suspend fun addPlanet(planet: Planet) {
+        try {
+            ditto?.store?.execute(
+                """
+                INSERT INTO planets DOCUMENTS (:newPlanet)
+                """,
+                mapOf(
+                    "newPlanet" to mapOf(
+                        "_id" to planet.id,
+                        "hasRings" to planet.hasRings,
+                        "isArchived" to planet.isArchived,
+                        "mainAtmosphere" to planet.mainAtmosphere,
+                        "name" to planet.name,
+                        "orderFromSun" to planet.orderFromSun,
+                        "planetId" to planet.planetId,
+                        "surfaceTemperatureC" to mapOf(
+                            "max" to planet.surfaceTemperatureC.max,
+                            "mean" to planet.surfaceTemperatureC.mean,
+                            "min" to planet.surfaceTemperatureC.min
+                        )
+                    )
+                )
+            )
+        } catch (e: Exception) {
+            errorService.showError("Failed to add planet: ${e.message}")
+        }
+    }
+
+    override suspend fun archivePlanet(planetId: String) {
+        try {
+            ditto?.store?.execute(
+                """
+                UPDATE planets
+                    SET isArchived = :isArchived
+                    WHERE planetId = :planetId
+                """,
+                mapOf(
+                    "isArchived" to true,
+                    "planetId" to planetId,
+                )
+            )
+        } catch (e: Exception) {
+            errorService.showError("Failed to add planet: ${e.message}")
         }
     }
 }

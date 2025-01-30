@@ -1,7 +1,10 @@
 package com.ditto.guides.ui
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,12 +13,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Public
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -25,6 +33,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -34,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import com.ditto.guides.models.AppConfig
 import com.ditto.guides.models.Planet
 import com.ditto.guides.services.DittoServiceImp
+import com.ditto.guides.services.ErrorService
 import com.ditto.guides.ui.theme.GuidesTheme
 import com.ditto.guides.viewModels.PlanetsListViewModel
 import org.koin.androidx.compose.koinViewModel
@@ -45,6 +57,8 @@ fun PlanetsListView(
     viewModel: PlanetsListViewModel = koinViewModel()
 ) {
     val planets by viewModel.planets.collectAsState()
+    var showEditor by remember { mutableStateOf(false) }
+    var planetToEdit by remember { mutableStateOf<Planet?>(null) }
 
     Scaffold(
         topBar = {
@@ -53,15 +67,18 @@ fun PlanetsListView(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = { viewModel.addPlanet() },
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+            Box(
+                modifier = Modifier.padding(bottom = 72.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add Planet"
-                )
+                FloatingActionButton(
+                    onClick = { 
+                        planetToEdit = null
+                        showEditor = true
+                    },
+                    shape = CircleShape
+                ) {
+                    Icon(Icons.Default.Add, "Add Planet")
+                }
             }
         },
         containerColor = MaterialTheme.colorScheme.surfaceVariant
@@ -94,11 +111,25 @@ fun PlanetsListView(
                     ) {
                         PlanetRow(
                             planet = planet,
+                            onEdit = {
+                                planetToEdit = planet
+                                showEditor = true
+                            },
+                            onArchive = {
+                                viewModel.archivePlanet(planet.planetId)
+                            },
                             modifier = Modifier.padding(16.dp)
                         )
                     }
                 }
             }
+        }
+        
+        if (showEditor) {
+            PlanetEditorView(
+                planet = planetToEdit,
+                onDismiss = { showEditor = false }
+            )
         }
     }
 }
@@ -131,13 +162,15 @@ private fun ContentUnavailable(modifier: Modifier = Modifier) {
 @Composable
 private fun PlanetRow(
     planet: Planet,
+    onEdit: () -> Unit,
+    onArchive: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier) {
         Text(
             text = planet.name,
             style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold
+            fontWeight = FontWeight.SemiBold,
         )
         
         if (planet.mainAtmosphere.isNotEmpty()) {
@@ -153,20 +186,60 @@ private fun PlanetRow(
                 Text(
                     text = "Max: ${max.toInt()}°C",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error  // Red for maximum temperature
+                    color = MaterialTheme.colorScheme.error
                 )
             }
             Text(
                 text = "Mean: ${planet.surfaceTemperatureC.mean.toInt()}°C",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.tertiary  // Orange for mean temperature
+                color = MaterialTheme.colorScheme.tertiary
             )
             planet.surfaceTemperatureC.min?.let { min ->
                 Text(
                     text = "Min: ${min.toInt()}°C",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary  // Blue for minimum temperature
+                    color = MaterialTheme.colorScheme.primary
                 )
+            }
+        }
+
+        // Action buttons at the bottom
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            FilledTonalButton(
+                onClick = onEdit,
+                modifier = Modifier.padding(end = 8.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                Icon(
+                    Icons.Default.Edit,
+                    contentDescription = "Edit planet",
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(Modifier.size(8.dp))
+                Text("Edit")
+            }
+            
+            FilledTonalButton(
+                onClick = onArchive,
+                colors = ButtonDefaults.filledTonalButtonColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    contentColor = MaterialTheme.colorScheme.error
+                ),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                Icon(
+                    Icons.Default.Delete,
+                    contentDescription = "Archive planet",
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(Modifier.size(8.dp))
+                Text("Delete")
             }
         }
     }
@@ -176,14 +249,16 @@ private fun PlanetRow(
 @Composable
 fun PlanetListPreview() {
     val context = LocalContext.current
+    val errorService: ErrorService = ErrorService()
     val previewDittoService = DittoServiceImp(
         AppConfig(
             "preview_app_id",
             "preview_token",
             "preview.ditto.live"),
-        context = context
+        context = context,
+        errorService = errorService
     )
-    val previewViewModel = PlanetsListViewModel(previewDittoService)
+    val previewViewModel = PlanetsListViewModel(previewDittoService, errorService)
 
     GuidesTheme {
         PlanetsListView(viewModel = previewViewModel)

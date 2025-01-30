@@ -1,17 +1,18 @@
 package com.ditto.guides.viewModels
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ditto.guides.models.Planet
 import com.ditto.guides.services.DittoService
+import com.ditto.guides.services.ErrorService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class PlanetsListViewModel(
-    private val dittoService: DittoService
+    private val dittoService: DittoService,
+    private val errorService: ErrorService
 ) : ViewModel() {
 
     private val _planets = MutableStateFlow<List<Planet>>(emptyList())
@@ -25,9 +26,14 @@ class PlanetsListViewModel(
                 }
         }
     }
-    
-    fun addPlanet() {
-        // TODO: Implement planet addition logic
-        Log.d("PlanetsListViewModel", "Add planet clicked")
+
+    fun archivePlanet(planetId: String) {
+        viewModelScope.launch {
+            try {
+                dittoService.archivePlanet(planetId)
+            } catch (e: Exception) {
+                errorService.showError("Failed to archive planet: ${e.message}")
+            }
+        }
     }
 } 
