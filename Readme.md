@@ -233,7 +233,8 @@ The `endpointUrl` in the config file is currently used to connect to the preview
 
 Open the `Android` folder in Android Studio.  
 
-> [!NOTE] Make sure you open this folder specifically, otherwise Android Studio will not open the application properly because it will be missing the gradle files it needs to properly restore packages.     
+> [!NOTE] 
+> Make sure you open this folder specifically, otherwise Android Studio will not open the application properly because it will be missing the gradle files it needs to properly restore packages.     
 
 # Known Limitations
 
