@@ -3,10 +3,10 @@
 <plist version="1.0">
 <dict>
 	<key>endpointUrl</key>
-	<string>brave-otter.ditto.dittolive.app</string>
+	<string>mongo-connector-preview-1.ditto.dittolive.app</string>
 	<key>appId</key>
-	<string></string>
+	<string>put appId here</string>
 	<key>authToken</key>
-	<string></string>
+	<string>put authToken here</string>
 </dict>
 </plist>

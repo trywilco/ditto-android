@@ -13,7 +13,11 @@ This is a sample application that demonstrates how to use the MongoDB Connector 
 ## SwiftUI 
 
 - Basic understanding of Swift and SwiftUI for SwiftUI app
-- XCode 16 or higher
+- Xcode 16 or higher
+
+## Android with Jetpack Compose
+- Basic understanding of Kotlin and Jetpack Compose for Android app
+- Android Studio "Koala" 2024.1.1 or higher
 
 # Setup in MongoDB Atlas
 
@@ -195,11 +199,41 @@ To validate that the documents are syncing in Ditto.
 
 Update the `dittoConfig.plist` file with the proper values for `appId` and `authToken`.  You can find these values in the Ditto Portal `Connect` tab listed as the App ID and Online Playground Authentication Token.
 
-The endpointUrl in the config file is currently used to connect to the beta environment of Big Peer that is used for the Ditto MongoDB Connector.
+The endpointUrl in the config file is currently used to connect to the preview environment of Big Peer that is used for the Ditto MongoDB Connector.
 
 ## Run the SwiftUI App
 
 Open the `Guides.xcodeproj` file in XCode that can be found in the Run the SwiftUI folder. 
+
+# Setup the Android Jetpack Compose App
+
+## Application Permissions for Ditto
+
+The Ditto Android SDK requires specific system permissions to enable its core functionality, including peer-to-peer synchronization and network operations. These permissions are configured through:
+
+1. Declaration in the `AndroidManifest.xml`
+2. Runtime permission handling in `MainActivity.kt`
+
+This sample application demonstrates the recommended permission implementation. However, developers should consult the [official Ditto documentation](https://docs.ditto.live/sdk/latest/install-guides/kotlin#declaring-permissions-in-the-android-manifest) for comprehensive guidance on permission requirements and best practices when integrating the SDK into their applications.
+
+Required permissions include:
+- Bluetooth permissions for peer-to-peer sync
+- Location permissions for BLE scanning
+- Network and WiFi permissions for cloud synchronization
+
+For a complete list of permissions and implementation details, please refer to the documentation.
+
+## Setup the dittoConfig.xml file
+
+Update the `dittoConfig.xml` file found in the Android/app/src/main/res/values/ folder with the proper values for `appId` and `authToken`.  You can find these values in the Ditto Portal `Connect` tab listed as the App ID and Online Playground Authentication Token.
+
+The `endpointUrl` in the config file is currently used to connect to the preview environment of Big Peer that is used for the Ditto MongoDB Connector.
+
+## Run the Android Jetpack Compose App
+
+Open the `Android` folder in Android Studio.  
+
+>[!NOTE] Make sure you open this folder specifically, otherwise Android Studio will not open the application properly because it will be missing the gradle files it needs to properly restore packages.     
 
 # Known Limitations
 

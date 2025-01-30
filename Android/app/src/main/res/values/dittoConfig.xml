@@ -1,0 +1,5 @@
+<resources>
+    <string name="endpointUrl">mongo-connector-preview-1.ditto.dittolive.app</string>
+    <string name="appId">put appId here</string>
+    <string name="authToken">put authToken here</string>
+</resources>
