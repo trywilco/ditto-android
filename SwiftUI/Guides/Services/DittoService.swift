@@ -42,7 +42,7 @@ import SwiftUI
             //
             //TODO:
             // used for dev environment, remove when done testing
-            //
+            // https://docs.ditto.live/sdk/latest/install-guides/swift#integrating-and-initializing-sync
             let identity = DittoIdentity.onlinePlayground(
                 appID: dittoApp.appConfig.appId,
                 token: dittoApp.appConfig.authToken,
@@ -79,6 +79,14 @@ import SwiftUI
 // MARK: Subscriptions
 extension DittoService {
 
+    /// Sets up the initial subscription to the planets collection in Ditto.
+    /// 
+    /// This subscription ensures that changes to the planets collection are synced 
+    /// between the local Ditto store and the MongoDB Atlas database.
+    /// 
+    /// - SeeAlso: https://docs.ditto.live/sdk/latest/sync/syncing-data#creating-subscriptions
+    /// 
+    /// - Throws: A DittoError if the subscription cannot be created or started
     func setupSubscription() throws {
         if let dittoInstance = ditto {
             //setup subscription
@@ -104,8 +112,17 @@ extension DittoService {
 // MARK: Register Observer - Live Query
 extension DittoService {
 
-    // Live Query - used to update planets array
-    // anytime the data changes in Ditto
+    /// Registers observers for the planets collection to handle real-time updates.
+    /// 
+    /// This method sets up a live query observer that:
+    /// - Monitors the planets collection for changes
+    /// - Updates the @Published planets array when changes occur
+    /// - Orders planets by their distance from the sun
+    /// - Filters out archived planets
+    /// 
+    /// - SeeAlso: https://docs.ditto.live/sdk/latest/crud/read#using-args-to-query-dynamic-values
+    /// 
+    /// - Throws: A DittoError if the observer cannot be registered
     func registerObservers() throws {
         if let dittoInstance = ditto {
             planetObserver = try dittoInstance.store.registerObserver(
@@ -124,37 +141,19 @@ extension DittoService {
             }
         }
     }
-
 }
 
 // MARK: Planet Operations
 extension DittoService {
-    func addPlanet(_ planet: Planet) async throws {
-        do {
-            if let dittoInstance = ditto {
-                try await dittoInstance.store.execute(
-                    query: """
-                    INSERT INTO planets
-                    DOCUMENTS (:newPlanet)
-                """,
-                    arguments: ["newPlanet": [
-                        "_id": planet._id,
-                        "hasRings": planet.hasRings,
-                        "isArchived": planet.isArchived,
-                        "mainAtmosphere": planet.mainAtmosphere,
-                        "name": planet.name,
-                        "orderFromSun": planet.orderFromSun,
-                        "planetId": planet.planetId,
-                        "surfaceTemperatureC": planet.surfaceTemperatureC.toDictionary()
-                        ]
-                    ]
-                )
-            }
-        } catch {
-            self.dittoApp?.setError(error)
-        }
-    }
-    
+
+    /// Updates an existing planet's properties in the Ditto store.
+    /// 
+    /// This method uses DQL to update all mutable fields of the planet 
+    /// 
+    /// - Parameter planet: The Planet object containing the updated values
+    /// - SeeAlso: https://docs.ditto.live/sdk/latest/crud/update#updating
+    /// 
+    /// - Throws: A DittoError if the update operation fails
     func updatePlanet(_ planet: Planet) async throws {
         do {
             if let dittoInstance = ditto {
@@ -185,6 +184,54 @@ extension DittoService {
         }
     }
     
+    /// Creates a new planet document in the Ditto store.
+    /// 
+    /// This method:
+    /// - Creates a new document in the planets collection
+    /// - Assigns the provided ID and properties
+    /// - Sets initial isArchived status to false
+    /// 
+    /// - Parameter planet: The planet to add to the store 
+    /// - SeeAlso: https://docs.ditto.live/sdk/latest/crud/create#creating-documents
+    /// 
+    /// - Throws: A DittoError if the insert operation fails
+    func addPlanet(_ planet: Planet) async throws {
+        do {
+            if let dittoInstance = ditto {
+                try await dittoInstance.store.execute(
+                    query: """
+                    INSERT INTO planets
+                    DOCUMENTS (:newPlanet)
+                """,
+                    arguments: ["newPlanet": [
+                        "_id": planet._id,
+                        "hasRings": planet.hasRings,
+                        "isArchived": planet.isArchived,
+                        "mainAtmosphere": planet.mainAtmosphere,
+                        "name": planet.name,
+                        "orderFromSun": planet.orderFromSun,
+                        "planetId": planet.planetId,
+                        "surfaceTemperatureC": planet.surfaceTemperatureC.toDictionary()
+                        ]
+                    ]
+                )
+            }
+        } catch {
+            self.dittoApp?.setError(error)
+        }
+    }
+    
+    /// Archives a planet by setting its isArchived flag to true.
+    /// 
+    /// This method implements the 'Soft-Delete' pattern, which:
+    /// - Marks the planet as archived instead of deleting it
+    /// - Removes it from active queries and views
+    /// - Maintains the data for historical purposes
+    /// 
+    /// - Parameter planetId: The unique identifier of the planet to archive
+    /// - SeeAlso: https://docs.ditto.live/sdk/latest/crud/delete#soft-delete-pattern
+    /// 
+    /// - Throws: A DittoError if the archive operation fails
     func archivePlanet(_ planetId: String) async throws {
         do {
             if let dittoInstance = ditto {
