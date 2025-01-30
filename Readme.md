@@ -13,7 +13,7 @@ This is a sample application that demonstrates how to use the MongoDB Connector 
 ## SwiftUI 
 
 - Basic understanding of Swift and SwiftUI for SwiftUI app
-- XCode 16 or higher
+- Xcode 16 or higher
 
 ## Android with Jetpack Compose
 - Basic understanding of Kotlin and Jetpack Compose for Android app
