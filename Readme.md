@@ -207,6 +207,22 @@ Open the `Guides.xcodeproj` file in XCode that can be found in the Run the Swift
 
 # Setup the Android Jetpack Compose App
 
+## Application Permissions for Ditto
+
+The Ditto Android SDK requires specific system permissions to enable its core functionality, including peer-to-peer synchronization and network operations. These permissions are configured through:
+
+1. Declaration in the `AndroidManifest.xml`
+2. Runtime permission handling in `MainActivity.kt`
+
+This sample application demonstrates the recommended permission implementation. However, developers should consult the [official Ditto documentation](https://docs.ditto.live/sdk/latest/install-guides/kotlin#declaring-permissions-in-the-android-manifest) for comprehensive guidance on permission requirements and best practices when integrating the SDK into their applications.
+
+Required permissions include:
+- Bluetooth permissions for peer-to-peer sync
+- Location permissions for BLE scanning
+- Network and WiFi permissions for cloud synchronization
+
+For a complete list of permissions and implementation details, please refer to the documentation.
+
 ## Setup the dittoConfig.xml file
 
 Update the `dittoConfig.xml` file found in the Android/app/src/main/res/values/ folder with the proper values for `appId` and `authToken`.  You can find these values in the Ditto Portal `Connect` tab listed as the App ID and Online Playground Authentication Token.
