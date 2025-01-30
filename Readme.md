@@ -17,7 +17,7 @@ This is a sample application that demonstrates how to use the MongoDB Connector 
 
 ## Android with Jetpack Compose
 - Basic understanding of Kotlin and Jetpack Compose for Android app
-- Android Studio 2024.1.1 or higher
+- Android Studio "Koala" 2024.1.1 or higher
 
 # Setup in MongoDB Atlas
 
