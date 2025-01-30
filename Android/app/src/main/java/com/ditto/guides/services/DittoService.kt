@@ -94,7 +94,7 @@ class DittoServiceImp(
 
             //
             // TODO remove when Connector is out of Private Preview
-            //
+            // https://docs.ditto.live/sdk/latest/install-guides/kotlin#integrating-and-initializing
             val identity = DittoIdentity.OnlinePlayground(
                 androidDependencies,
                 appConfig.appId,
@@ -118,6 +118,7 @@ class DittoServiceImp(
      * Sets up the initial subscription to the planets collection in Ditto.
      * This subscription ensures that changes to the planets collection are synced
      * between the local Ditto store and the MongoDB Atlas database.
+     * https://docs.ditto.live/sdk/latest/sync/syncing-data#creating-subscriptions
      *
      * The subscription:
      * - Queries all non-archived planets (isArchived = false)
@@ -146,6 +147,7 @@ class DittoServiceImp(
 
     /**
      * Creates a Flow that observes and emits changes to the planets collection in Ditto.
+     * https://docs.ditto.live/sdk/latest/crud/read#using-args-to-query-dynamic-values
      *
      * This method:
      * - Sets up a live query observer for the planets collection
@@ -191,7 +193,7 @@ class DittoServiceImp(
 
     /**
      * Updates an existing planet's properties in the Ditto store.
-     * 
+     * https://docs.ditto.live/sdk/latest/crud/update#updating 
      * Implementation details:
      * - Uses DQL to update the document
      *
@@ -231,6 +233,7 @@ class DittoServiceImp(
 
     /**
      * Creates a new planet document in the Ditto store.
+     * https://docs.ditto.live/sdk/latest/crud/create#creating-documents
      * 
      * Implementation details:
      * - Inserts a complete document with all required fields using DQL
@@ -266,7 +269,8 @@ class DittoServiceImp(
     }
 
     /**
-     * Marks a planet as archived in the Ditto store.
+     * Marks a planet as archived in the Ditto store.  
+     * This uses the 'Soft-Delete' pattern:  https://docs.ditto.live/sdk/latest/crud/delete#soft-delete-pattern  
      * 
      * Implementation details:
      * - Uses a simple DQL UPDATE query to set isArchived flag
