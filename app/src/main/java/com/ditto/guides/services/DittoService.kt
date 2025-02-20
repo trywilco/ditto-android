@@ -77,9 +77,41 @@ class DittoServiceImp(
 ) : DittoService {
 
     override var ditto: Ditto? = null
+    private var subscription: DittoSyncSubscription? = null
+    private var planetObserver: DittoStoreObserver? = null
 
     init {
-        // Empty implementation - will be implemented later
+        try {
+            DittoLogger.minimumLogLevel = DittoLogLevel.DEBUG
+            val androidDependencies = DefaultAndroidDittoDependencies(context)
+
+            //
+            // CustomUrl is used because Connector is in Private Preview
+            // and uses a different cluster than normal production
+            //
+            val customAuthUrl = "https://${appConfig.endpointUrl}"
+            val webSocketUrl = "wss://${appConfig.endpointUrl}"
+
+            //
+            // TODO remove when Connector is out of Private Preview
+            // https://docs.ditto.live/sdk/latest/install-guides/kotlin#integrating-and-initializing
+            val identity = DittoIdentity.OnlinePlayground(
+                androidDependencies,
+                appConfig.appId,
+                appConfig.authToken,
+                false,
+                customAuthUrl
+            )
+            this.ditto = Ditto(androidDependencies, identity)
+            ditto?.updateTransportConfig { config ->
+                config.connect.websocketUrls.add(webSocketUrl)
+            }
+
+            setupSubscriptions()
+
+        } catch (e: DittoError) {
+            errorService.showError("Failed to initialize Ditto: ${e.message}")
+        }
     }
 
     /**
@@ -97,7 +129,20 @@ class DittoServiceImp(
      * This subscription is responsible for the actual data synchronization.
      */
     private fun setupSubscriptions() {
-        // Empty implementation - will be implemented later
+        try {
+            this.ditto?.let {
+                this.subscription = it.sync.registerSubscription(
+                    """
+                    SELECT *
+                    FROM planets
+                    WHERE isArchived = :isArchived
+                    """, mapOf("isArchived" to false)
+                )
+                it.startSync()
+            }
+        } catch (e: Exception) {
+            errorService.showError("Failed to setup ditto subscription: ${e.message}")
+        }
     }
 
     /**
